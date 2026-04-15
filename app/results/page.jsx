@@ -334,25 +334,13 @@ function ResultsContent() {
         <div>
           <SectionLabel>// score breakdown</SectionLabel>
           {showSkeleton ? (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.5rem',
-              }}
-            >
+            <div className="score-grid">
               {SCORE_CATEGORIES.map((k) => (
                 <SkeletonBox key={k} height="5.5rem" />
               ))}
             </div>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.5rem',
-              }}
-            >
+            <div className="score-grid">
               {SCORE_CATEGORIES.map((key, i) => (
                 <div
                   key={key}
@@ -423,7 +411,7 @@ function ResultsContent() {
             textAlign: 'center',
           }}
         >
-          githubmaxxing · free forever · no login required
+          githubmaxxing.vercel.app · free · no login required
         </p>
       </footer>
     </main>
