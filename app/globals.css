@@ -22,6 +22,7 @@
   --border: #e2e8f0;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-glow: 0 8px 32px rgba(124, 58, 237, 0.12), 0 2px 8px rgba(0,0,0,0.04);
 
   /* Text */
   --text: #0f172a;
@@ -38,6 +39,40 @@ body {
   color: var(--text);
 }
 
+/* ── Gradient text ── */
+.text-gradient {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Card hover ── */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+/* ── Animations ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.35s ease both;
+}
+
 /* ── Responsive ── */
 
 .proof-grid {
@@ -49,7 +84,7 @@ body {
 .score-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 @media (max-width: 640px) {

@@ -313,6 +313,11 @@ function ResultsContent() {
                   letterSpacing: '-0.04em',
                   lineHeight: 1,
                   margin: 0,
+                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  display: 'inline-block',
                 }}
               >
                 {scores?.total}
@@ -320,7 +325,7 @@ function ResultsContent() {
                   style={{
                     fontSize: '1rem',
                     fontWeight: 500,
-                    color: 'var(--text-muted)',
+                    WebkitTextFillColor: 'var(--text-muted)',
                   }}
                 >
                   /100

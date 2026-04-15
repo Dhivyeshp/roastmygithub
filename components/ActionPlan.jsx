@@ -1,37 +1,19 @@
 const impactStyle = {
-  high: {
-    backgroundColor: "#ede9fe",
-    color: "#5b21b6",
-    border: "none",
-  },
-  medium: {
-    backgroundColor: "#FAEEDA",
-    color: "#854F0B",
-    border: "none",
-  },
-  low: {
-    backgroundColor: "var(--surface-2)",
-    color: "var(--text-muted)",
-    border: "none",
-  },
+  high: { backgroundColor: "#ede9fe", color: "#5b21b6" },
+  medium: { backgroundColor: "#fdf3e3", color: "#854F0B" },
+  low: { backgroundColor: "var(--surface-2)", color: "var(--text-muted)" },
 };
 
 const effortStyle = {
-  low: {
-    backgroundColor: "#E6F1FB",
-    color: "#185FA5",
-    border: "none",
-  },
-  medium: {
-    backgroundColor: "#FAEEDA",
-    color: "#854F0B",
-    border: "none",
-  },
-  high: {
-    backgroundColor: "#FCEBEB",
-    color: "#A32D2D",
-    border: "none",
-  },
+  low: { backgroundColor: "#E6F1FB", color: "#185FA5" },
+  medium: { backgroundColor: "#fdf3e3", color: "#854F0B" },
+  high: { backgroundColor: "#fdecea", color: "#A32D2D" },
+};
+
+const accentGradient = {
+  high: "linear-gradient(180deg, #7c3aed, #a855f7)",
+  medium: "linear-gradient(180deg, #BA7517, #f59e0b)",
+  low: "var(--border)",
 };
 
 function Pill({ children, style }) {
@@ -39,11 +21,12 @@ function Pill({ children, style }) {
     <span
       style={{
         display: "inline-block",
-        padding: "0.15rem 0.5rem",
+        padding: "0.2rem 0.55rem",
         borderRadius: "0.375rem",
         fontFamily: "'DM Mono', monospace",
-        fontSize: "0.6rem",
+        fontSize: "0.58rem",
         fontWeight: 500,
+        letterSpacing: "0.02em",
         ...style,
       }}
     >
@@ -52,66 +35,89 @@ function Pill({ children, style }) {
   );
 }
 
-function ActionItem({ action }) {
+function ActionItem({ action, index }) {
   const { priority, issue, fix, impact, effort, timeEstimate } = action;
   const impactSt = impactStyle[impact] || impactStyle.low;
   const effortSt = effortStyle[effort] || effortStyle.medium;
+  const gradient = accentGradient[impact] || accentGradient.low;
 
   return (
     <div
+      className="card-hover fade-up"
       style={{
         display: "flex",
-        gap: "0.75rem",
+        gap: "0.875rem",
         backgroundColor: "var(--surface)",
         border: "1px solid var(--border)",
-        borderRadius: "0.75rem",
-        padding: "1.125rem 1.125rem",
-        boxShadow: "var(--shadow-sm)",
+        borderRadius: "0.875rem",
+        padding: "1.125rem 1.25rem",
+        position: "relative",
+        overflow: "hidden",
+        animationDelay: `${index * 60}ms`,
       }}
     >
-      <span
+      {/* Left accent bar */}
+      <div
         style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: "3px",
+          background: gradient,
+          borderRadius: "0.875rem 0 0 0.875rem",
+        }}
+      />
+
+      {/* Priority circle */}
+      <div
+        style={{
+          width: "26px",
+          height: "26px",
+          borderRadius: "9999px",
+          backgroundColor: "var(--surface-2)",
+          border: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           fontFamily: "'DM Mono', monospace",
-          fontSize: "0.7rem",
+          fontSize: "0.6rem",
+          fontWeight: 700,
           color: "var(--text-muted)",
-          paddingTop: "0.125rem",
-          minWidth: "1.25rem",
           flexShrink: 0,
+          marginTop: "1px",
         }}
       >
-        {String(priority).padStart(2, "0")}
-      </span>
+        {priority}
+      </div>
+
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
           style={{
             fontSize: "0.875rem",
             fontWeight: 600,
-            letterSpacing: "-0.01em",
-            marginBottom: "0.25rem",
+            letterSpacing: "-0.015em",
+            marginBottom: "0.3rem",
             color: "var(--text)",
+            lineHeight: 1.4,
           }}
         >
           {issue}
         </p>
         <p
           style={{
-            fontSize: "0.75rem",
+            fontSize: "0.775rem",
             color: "var(--text-muted)",
-            lineHeight: 1.6,
-            marginBottom: "0.5rem",
+            lineHeight: 1.65,
+            marginBottom: "0.75rem",
           }}
         >
           {fix}
         </p>
-        <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
           <Pill style={impactSt}>{impact} impact</Pill>
           <Pill style={effortSt}>{effort} effort</Pill>
-          <Pill
-            style={{
-              backgroundColor: "var(--surface-2)",
-              color: "var(--text-muted)",
-            }}
-          >
+          <Pill style={{ backgroundColor: "var(--surface-2)", color: "var(--text-faint)" }}>
             {timeEstimate}
           </Pill>
         </div>
@@ -139,8 +145,8 @@ export default function ActionPlan({ actions }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-      {actions.map((action) => (
-        <ActionItem key={action.priority} action={action} />
+      {actions.map((action, i) => (
+        <ActionItem key={action.priority} action={action} index={i} />
       ))}
     </div>
   );

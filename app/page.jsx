@@ -49,6 +49,12 @@ function barColor(score) {
   return '#E24B4A';
 }
 
+function barGradient(score) {
+  if (score >= 75) return 'linear-gradient(90deg, #7c3aed, #a855f7)';
+  if (score >= 50) return 'linear-gradient(90deg, #BA7517, #f59e0b)';
+  return 'linear-gradient(90deg, #E24B4A, #f87171)';
+}
+
 function ExampleCard({ example }) {
   const { username, initials, grade, score, verdict, bars } = example;
   const color = gradeColor(grade);
@@ -56,22 +62,24 @@ function ExampleCard({ example }) {
 
   return (
     <div
+      className="card-hover"
       style={{
         backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderRadius: '0.875rem',
-        padding: '1rem 1.25rem',
+        padding: '1rem 1.125rem',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.875rem',
+        gap: '0.75rem',
       }}
     >
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div
             style={{
-              width: '32px',
-              height: '32px',
+              width: '30px',
+              height: '30px',
               borderRadius: '9999px',
               backgroundColor: bg,
               display: 'flex',
@@ -79,18 +87,18 @@ function ExampleCard({ example }) {
               justifyContent: 'center',
               color,
               fontFamily: "'DM Mono', monospace",
-              fontSize: '0.65rem',
-              fontWeight: 600,
+              fontSize: '0.6rem',
+              fontWeight: 700,
               flexShrink: 0,
             }}
           >
             {initials}
           </div>
           <div>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.75rem', fontWeight: 500, margin: 0, color: 'var(--text)' }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.7rem', fontWeight: 600, margin: 0, color: 'var(--text)' }}>
               @{username}
             </p>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.6rem', color: 'var(--text-muted)', margin: 0 }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.58rem', color: 'var(--text-muted)', margin: 0 }}>
               {verdict}
             </p>
           </div>
@@ -100,11 +108,11 @@ function ExampleCard({ example }) {
             style={{
               display: 'block',
               fontFamily: "'DM Mono', monospace",
-              fontSize: '0.6rem',
+              fontSize: '0.58rem',
               fontWeight: 600,
               color,
               backgroundColor: bg,
-              padding: '0.1rem 0.45rem',
+              padding: '0.1rem 0.4rem',
               borderRadius: '0.3rem',
               marginBottom: '0.2rem',
             }}
@@ -114,7 +122,7 @@ function ExampleCard({ example }) {
           <span
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              fontSize: '1.35rem',
+              fontSize: '1.4rem',
               fontWeight: 800,
               letterSpacing: '-0.04em',
               color: 'var(--text)',
@@ -122,21 +130,21 @@ function ExampleCard({ example }) {
             }}
           >
             {score}
-            <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)' }}>/100</span>
+            <span style={{ fontSize: '0.6rem', fontWeight: 400, color: 'var(--text-faint)', letterSpacing: 0 }}>/100</span>
           </span>
         </div>
       </div>
 
       {/* Score bars */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {['Profile', 'Repos', 'READMEs', 'Commits', 'Social'].map((label, i) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span
               style={{
                 fontFamily: "'DM Mono', monospace",
-                fontSize: '0.55rem',
-                color: 'var(--text-muted)',
-                width: '46px',
+                fontSize: '0.52rem',
+                color: 'var(--text-faint)',
+                width: '42px',
                 flexShrink: 0,
               }}
             >
@@ -145,7 +153,7 @@ function ExampleCard({ example }) {
             <div
               style={{
                 flex: 1,
-                height: '3px',
+                height: '4px',
                 backgroundColor: 'var(--border)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
@@ -155,7 +163,7 @@ function ExampleCard({ example }) {
                 style={{
                   height: '100%',
                   width: `${bars[i]}%`,
-                  backgroundColor: barColor(bars[i]),
+                  background: barGradient(bars[i]),
                   borderRadius: '9999px',
                 }}
               />
@@ -163,9 +171,9 @@ function ExampleCard({ example }) {
             <span
               style={{
                 fontFamily: "'DM Mono', monospace",
-                fontSize: '0.55rem',
-                color: 'var(--text-muted)',
-                width: '20px',
+                fontSize: '0.52rem',
+                color: 'var(--text-faint)',
+                width: '18px',
                 textAlign: 'right',
                 flexShrink: 0,
               }}
@@ -346,7 +354,7 @@ export default function Home() {
           }}
         >
           Your GitHub is losing you{' '}
-          <span style={{ color: '#7c3aed' }}>jobs.</span>
+          <span style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>jobs.</span>
           <br />
           Fix it in 5 minutes.
         </h1>
@@ -412,8 +420,8 @@ export default function Home() {
               type="submit"
               disabled={loading || !username.trim()}
               style={{
-                backgroundColor: loading || !username.trim() ? 'var(--surface-2)' : '#0f172a',
-                color: loading || !username.trim() ? 'var(--text-muted)' : '#7c3aed',
+                background: loading || !username.trim() ? 'var(--surface-2)' : 'linear-gradient(135deg, #7c3aed, #9333ea)',
+                color: loading || !username.trim() ? 'var(--text-muted)' : 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
                 padding: '0.75rem 1.25rem',
@@ -422,7 +430,8 @@ export default function Home() {
                 fontSize: '0.875rem',
                 cursor: loading || !username.trim() ? 'not-allowed' : 'pointer',
                 whiteSpace: 'nowrap',
-                transition: 'background-color 0.15s',
+                transition: 'opacity 0.15s, box-shadow 0.15s',
+                boxShadow: loading || !username.trim() ? 'none' : '0 4px 14px rgba(124, 58, 237, 0.35)',
               }}
             >
               {loading ? 'Checking...' : 'Analyze →'}
