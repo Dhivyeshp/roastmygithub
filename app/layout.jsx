@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "GitHub Maxxing — Maximize Your GitHub Profile",
+  title: "GitHub Maxxing | Maximize Your GitHub Profile",
   description:
     "Analyze your GitHub profile. Get a score. Fix what's holding you back.",
 };
