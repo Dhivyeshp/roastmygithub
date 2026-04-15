@@ -15,7 +15,7 @@ const CATEGORY_NOTES = {
 };
 
 function scoreColor(score) {
-  if (score >= 75) return "#1D9E75";
+  if (score >= 75) return "#7c3aed";
   if (score >= 50) return "#EF9F27";
   return "#E24B4A";
 }
