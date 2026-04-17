@@ -6,6 +6,7 @@ import ScoreCard from '@/components/ScoreCard';
 import ActionPlan from '@/components/ActionPlan';
 import ShareCard from '@/components/ShareCard';
 import SectionLabel from '@/components/SectionLabel';
+import ReadmeTemplate from '@/components/ReadmeTemplate';
 
 const SCORE_CATEGORIES = ['profile', 'repos', 'readmes', 'commits', 'social'];
 
@@ -291,20 +292,36 @@ function ResultsContent() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: '0.65rem',
-                  backgroundColor: 'var(--green-light)',
-                  color: 'var(--green-dark)',
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '0.375rem',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                {scores?.label}
-              </span>
+              <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: '0.65rem',
+                    backgroundColor: '#ede9fe',
+                    color: '#5b21b6',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '0.375rem',
+                  }}
+                >
+                  {scores?.label}
+                </span>
+                {scores?.percentile && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: '0.65rem',
+                      backgroundColor: 'var(--surface-2)',
+                      color: 'var(--text-muted)',
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '0.375rem',
+                    }}
+                  >
+                    {scores.percentile}
+                  </span>
+                )}
+              </div>
               <p
                 style={{
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -387,6 +404,14 @@ function ResultsContent() {
             <ActionPlan actions={actions} />
           )}
         </div>
+
+        {/* README template */}
+        {state === 'done' && (
+          <div>
+            <SectionLabel>// profile readme template</SectionLabel>
+            <ReadmeTemplate username={username} profile={githubData?.profile} topLanguages={githubData?.repos?.topLanguages} />
+          </div>
+        )}
 
         {/* Share strip */}
         {state === 'done' && scores && (
