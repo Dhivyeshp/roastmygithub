@@ -291,7 +291,7 @@ function ResultsContent() {
                 </p>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                 <span
                   style={{
@@ -348,6 +348,33 @@ function ResultsContent() {
                   /100
                 </span>
               </p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  color: 'var(--text-muted)',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--border)',
+                  borderRadius: '0.375rem',
+                  padding: '0.4rem 0.75rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--text)';
+                  e.currentTarget.style.borderColor = '#7c3aed';
+                  e.currentTarget.style.backgroundColor = '#ede9fe';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                ↻ Refresh
+              </button>
             </div>
           </div>
         )}
