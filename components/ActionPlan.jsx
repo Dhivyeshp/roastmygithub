@@ -36,7 +36,7 @@ function Pill({ children, style }) {
 }
 
 function ActionItem({ action, index }) {
-  const { priority, issue, fix, impact, effort, timeEstimate } = action;
+  const { priority, issue, fix, impact, effort, timeEstimate, repo } = action;
   const impactSt = impactStyle[impact] || impactStyle.low;
   const effortSt = effortStyle[effort] || effortStyle.medium;
   const gradient = accentGradient[impact] || accentGradient.low;
@@ -120,6 +120,11 @@ function ActionItem({ action, index }) {
           <Pill style={{ backgroundColor: "var(--surface-2)", color: "var(--text-faint)" }}>
             {timeEstimate}
           </Pill>
+          {repo && (
+            <Pill style={{ backgroundColor: "#f0ebff", color: "#7c3aed", fontFamily: "'DM Mono', monospace" }}>
+              /{repo}
+            </Pill>
+          )}
         </div>
       </div>
     </div>
