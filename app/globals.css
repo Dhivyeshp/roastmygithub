@@ -87,6 +87,27 @@ body {
   gap: 0.625rem;
 }
 
+/* ── Hero two-column layout ── */
+.hero-layout {
+  flex-direction: row;
+}
+
+.hero-right {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .hero-layout {
+    flex-direction: column;
+    padding-top: 3rem !important;
+    gap: 2.5rem !important;
+  }
+
+  .hero-right {
+    width: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   .proof-grid {
     grid-template-columns: 1fr;
