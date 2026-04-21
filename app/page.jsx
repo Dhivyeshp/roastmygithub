@@ -82,8 +82,9 @@ function useStickyScroll(sectionRef) {
     };
 
     const tick = () => {
-      currentRef.current += (targetRef.current - currentRef.current) * 0.09;
-      if (Math.abs(targetRef.current - currentRef.current) < 0.1) {
+      const diff = targetRef.current - currentRef.current;
+      currentRef.current += diff * 0.16;
+      if (Math.abs(diff) < 0.5) {
         currentRef.current = targetRef.current;
       }
       setScrollY(currentRef.current);
