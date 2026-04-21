@@ -138,7 +138,7 @@ export default function IntroAnimation({ scrollY }: Props) {
             <div className="flex h-full w-full flex-col items-center justify-center" style={{ perspective: "1000px" }}>
 
                 {/* "Profiles that set the bar" — visible before morph */}
-                <div className="absolute z-0 left-0 right-0 flex flex-col items-center justify-center text-center pointer-events-none top-1/2 -translate-y-1/2">
+                <div className="absolute z-20 left-0 right-0 flex flex-col items-center justify-center text-center pointer-events-none top-[35%] -translate-y-1/2 px-4">
                     <motion.h2
                         animate={{ opacity: labelOpacity, y: 0, filter: "blur(0px)" }}
                         initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -160,7 +160,7 @@ export default function IntroAnimation({ scrollY }: Props) {
                 {/* "The top 0.1%" - fades in as morph completes */}
                 <motion.div
                     animate={{ opacity: contentOpacity, y: contentY }}
-                    className="absolute top-[10%] left-0 right-0 z-10 flex flex-col items-center justify-center text-center pointer-events-none px-4"
+                    className="absolute left-0 right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center text-center pointer-events-none px-4"
                 >
                     <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 800, fontSize: "clamp(1.4rem, 2.5vw, 2.2rem)", color: "#0f172a", letterSpacing: "-0.03em", marginBottom: "0.75rem" }}>
                         The top 0.1% - study them.
@@ -171,17 +171,18 @@ export default function IntroAnimation({ scrollY }: Props) {
                 </motion.div>
 
                 {/* Cards — zero-size anchor at viewport center so x/y offsets radiate from center */}
-                <div style={{ position: "absolute", top: "50%", left: "50%" }}>
+                <div style={{ position: "absolute", top: "50%", left: "50%", zIndex: 5 }}>
                     {PROFILES.map((profile, i) => {
                         const isMobile = containerSize.width < 768;
                         const minDim = Math.min(containerSize.width || 900, containerSize.height || 700);
                         const spacing = isMobile ? 64 : 78;
+                        const lineY = isMobile ? 120 : 135;
                         const lineWidth = (TOTAL_IMAGES - 1) * spacing;
                         const lineTravel = Math.max(0, lineWidth - containerSize.width + IMG_WIDTH * 4);
                         const lineX = i * spacing - lineWidth / 2 - lerp(-lineTravel / 2, lineTravel / 2, lineScrollValue);
                         const linePos = {
                             x: lineX,
-                            y: 0,
+                            y: lineY,
                             rotation: 0,
                             scale: isMobile ? 0.96 : 1,
                         };
