@@ -110,12 +110,19 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [kickerIdx, setKickerIdx] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setKickerIdx((i) => (i + 1) % KICKER_WORDS.length);
     }, 2500);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
   const morphSectionRef = useRef(null);
   const morphScrollY = useStickyScroll(morphSectionRef);
@@ -167,7 +174,7 @@ export default function Home() {
     <main style={{ backgroundColor: '#fdfcff' }}>
 
       {/* ── Hero wrapper (overflow:hidden clips the blobs to this area only) ── */}
-      <div style={{ position: 'relative', overflow: 'hidden', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingTop: '64px' }}>
 
       {/* Subtle left vignette so text pops */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
@@ -178,13 +185,16 @@ export default function Home() {
       </div>
 
       {/* Nav */}
-      <nav style={{ position: 'relative', zIndex: 50, padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'center' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
         <div style={{
+          pointerEvents: 'auto',
           display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-          background: 'var(--surface)', backdropFilter: 'blur(12px)',
+          background: scrolled ? 'var(--surface)' : 'var(--surface)',
+          backdropFilter: 'blur(12px)',
           border: '1px solid var(--border)', borderRadius: '9999px',
           padding: '0.35rem 0.5rem 0.35rem 1rem',
-          boxShadow: 'var(--shadow-sm)',
+          boxShadow: scrolled ? 'var(--shadow)' : 'var(--shadow-sm)',
+          transition: 'box-shadow 0.3s ease',
         }}>
           {/* Logo */}
           <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)', marginRight: '0.75rem' }}>
