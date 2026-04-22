@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useSpring, useMotionValue } from "framer-motion";
-
-export type AnimationPhase = "scatter" | "line" | "circle";
 
 interface FlipCardProps {
     src: string;
     username: string;
-    phase: AnimationPhase;
     target: { x: number; y: number; rotation: number; scale: number; opacity: number };
     onClick: () => void;
 }
@@ -17,7 +14,7 @@ interface FlipCardProps {
 const IMG_WIDTH = 60;
 const IMG_HEIGHT = 85;
 
-function FlipCard({ src, username, phase, target, onClick }: FlipCardProps) {
+function FlipCard({ src, username, target, onClick }: FlipCardProps) {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -51,7 +48,6 @@ function FlipCard({ src, username, phase, target, onClick }: FlipCardProps) {
     );
 }
 
-const TOTAL_IMAGES = 20;
 export const MORPH_SCROLL_HEIGHT = 3200; // how many px of page scroll this consumes
 
 const PROFILES = [
@@ -77,6 +73,10 @@ const PROFILES = [
     { username: "t3dotgg",       src: "https://github.com/t3dotgg.png?size=320" },
 ];
 
+const TOTAL_IMAGES = PROFILES.length;
+const LINE_SCROLL_END = 850;
+const CIRCLE_MORPH_END = 1600;
+
 const lerp = (a: number, b: number, t: number) => a * (1 - t) + b * t;
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const invlerp = (a: number, b: number, v: number) => clamp((v - a) / (b - a), 0, 1);
@@ -88,7 +88,6 @@ interface Props {
 
 export default function IntroAnimation({ scrollY }: Props) {
     const router = useRouter();
-    const [introPhase, setIntroPhase] = useState<AnimationPhase>("scatter");
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -101,13 +100,6 @@ export default function IntroAnimation({ scrollY }: Props) {
         obs.observe(containerRef.current);
         setContainerSize({ width: containerRef.current.offsetWidth, height: containerRef.current.offsetHeight });
         return () => obs.disconnect();
-    }, []);
-
-    // Intro phases driven by time (same as original)
-    useEffect(() => {
-        const t1 = setTimeout(() => setIntroPhase("line"), 500);
-        const t2 = setTimeout(() => setIntroPhase("circle"), 2500);
-        return () => { clearTimeout(t1); clearTimeout(t2); };
     }, []);
 
     // Mouse parallax
@@ -128,31 +120,25 @@ export default function IntroAnimation({ scrollY }: Props) {
 
     useEffect(() => smoothMouseX.on("change", setParallaxValue), [smoothMouseX]);
 
-    // Derived animation values from scrollY prop
-    // Phase 1 (0–600px): circle → arc morph
-    const morphValue = invlerp(0, 600, scrollY);
-    // Phase 2 (600–3200px): arc rotation
-    const rotateValue = invlerp(600, MORPH_SCROLL_HEIGHT, scrollY) * 360;
+    // Derived animation values from scrollY prop:
+    // 0–850px keeps the profile pictures in a horizontally scrollable-feeling line.
+    // 850–1600px morphs the line into a circle.
+    // 1600–3200px rotates that circle with page scroll.
+    const lineScrollValue = invlerp(0, LINE_SCROLL_END, scrollY);
+    const morphValue = invlerp(LINE_SCROLL_END, CIRCLE_MORPH_END, scrollY);
+    const rotateValue = invlerp(CIRCLE_MORPH_END, MORPH_SCROLL_HEIGHT, scrollY) * 360;
 
     // Text visibility
-    const labelOpacity = introPhase === "circle" ? clamp(1 - morphValue * 2.5, 0, 1) : 0;
-    const contentOpacity = invlerp(0.8, 1, morphValue);
-    const contentY = lerp(20, 0, invlerp(0.8, 1, morphValue));
-
-    const scatterPositions = useMemo(() => PROFILES.map(() => ({
-        x: (Math.random() - 0.5) * 1500,
-        y: (Math.random() - 0.5) * 1000,
-        rotation: (Math.random() - 0.5) * 180,
-        scale: 0.6,
-        opacity: 0,
-    })), []);
+    const labelOpacity = clamp(1 - morphValue * 1.8, 0, 1);
+    const contentOpacity = invlerp(0.65, 1, morphValue);
+    const contentY = lerp(20, 0, invlerp(0.65, 1, morphValue));
 
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ background: "#fdfcff" }}>
             <div className="flex h-full w-full flex-col items-center justify-center" style={{ perspective: "1000px" }}>
 
                 {/* "Profiles that set the bar" — visible before morph */}
-                <div className="absolute z-0 left-0 right-0 flex flex-col items-center justify-center text-center pointer-events-none top-1/2 -translate-y-1/2">
+                <div className="absolute z-20 left-0 right-0 flex flex-col items-center justify-center text-center pointer-events-none top-[35%] -translate-y-1/2 px-4">
                     <motion.h2
                         animate={{ opacity: labelOpacity, y: 0, filter: "blur(0px)" }}
                         initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
@@ -167,14 +153,14 @@ export default function IntroAnimation({ scrollY }: Props) {
                         transition={{ duration: 1, delay: 0.2 }}
                         style={{ marginTop: "0.75rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.2em", color: "#94a3b8", textTransform: "uppercase" }}
                     >
-                        scroll to explore
+                        scroll the line into a circle
                     </motion.p>
                 </div>
 
                 {/* "The top 0.1%" - fades in as morph completes */}
                 <motion.div
                     animate={{ opacity: contentOpacity, y: contentY }}
-                    className="absolute top-[10%] left-0 right-0 z-10 flex flex-col items-center justify-center text-center pointer-events-none px-4"
+                    className="absolute left-0 right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center justify-center text-center pointer-events-none px-4"
                 >
                     <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 800, fontSize: "clamp(1.4rem, 2.5vw, 2.2rem)", color: "#0f172a", letterSpacing: "-0.03em", marginBottom: "0.75rem" }}>
                         The top 0.1% - study them.
@@ -185,53 +171,41 @@ export default function IntroAnimation({ scrollY }: Props) {
                 </motion.div>
 
                 {/* Cards — zero-size anchor at viewport center so x/y offsets radiate from center */}
-                <div style={{ position: "absolute", top: "50%", left: "50%" }}>
+                <div style={{ position: "absolute", top: "50%", left: "50%", zIndex: 5 }}>
                     {PROFILES.map((profile, i) => {
-                        let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
+                        const isMobile = containerSize.width < 768;
+                        const minDim = Math.min(containerSize.width || 900, containerSize.height || 700);
+                        const spacing = isMobile ? 64 : 78;
+                        const lineY = isMobile ? 120 : 135;
+                        const lineWidth = (TOTAL_IMAGES - 1) * spacing;
+                        const lineTravel = Math.max(0, lineWidth - containerSize.width + IMG_WIDTH * 4);
+                        const lineX = i * spacing - lineWidth / 2 - lerp(-lineTravel / 2, lineTravel / 2, lineScrollValue);
+                        const linePos = {
+                            x: lineX,
+                            y: lineY,
+                            rotation: 0,
+                            scale: isMobile ? 0.96 : 1,
+                        };
 
-                        if (introPhase === "scatter") {
-                            target = scatterPositions[i];
-                        } else if (introPhase === "line") {
-                            const spacing = 70;
-                            target = { x: i * spacing - (TOTAL_IMAGES * spacing) / 2, y: 0, rotation: 0, scale: 1, opacity: 1 };
-                        } else {
-                            const isMobile = containerSize.width < 768;
-                            const minDim = Math.min(containerSize.width, containerSize.height);
-                            const circleRadius = Math.min(minDim * 0.35, 350);
-                            const circleAngle = (i / TOTAL_IMAGES) * 360;
-                            const circleRad = (circleAngle * Math.PI) / 180;
-                            const circlePos = {
-                                x: Math.cos(circleRad) * circleRadius,
-                                y: Math.sin(circleRad) * circleRadius,
-                                rotation: circleAngle + 90,
-                            };
+                        const circleRadius = Math.min(minDim * (isMobile ? 0.34 : 0.36), isMobile ? 210 : 330);
+                        const circleAngle = (i / TOTAL_IMAGES) * 360 - 90 + rotateValue;
+                        const circleRad = (circleAngle * Math.PI) / 180;
+                        const circlePos = {
+                            x: Math.cos(circleRad) * circleRadius + parallaxValue * 0.18,
+                            y: Math.sin(circleRad) * circleRadius,
+                            rotation: circleAngle + 90,
+                            scale: isMobile ? 1.12 : 1.28,
+                        };
 
-                            const baseRadius = Math.min(containerSize.width, containerSize.height * 1.5);
-                            const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
-                            const arcCenterY = containerSize.height * (isMobile ? 0.35 : 0.25) + arcRadius;
-                            const spreadAngle = isMobile ? 100 : 130;
-                            const startAngle = -90 - spreadAngle / 2;
-                            const step = spreadAngle / (TOTAL_IMAGES - 1);
-                            const boundedRotation = -clamp(rotateValue / 360, 0, 1) * spreadAngle * 0.8;
-                            const currentArcAngle = startAngle + i * step + boundedRotation;
-                            const arcRad = (currentArcAngle * Math.PI) / 180;
-                            const arcPos = {
-                                x: Math.cos(arcRad) * arcRadius + parallaxValue,
-                                y: Math.sin(arcRad) * arcRadius + arcCenterY,
-                                rotation: currentArcAngle + 90,
-                                scale: isMobile ? 1.4 : 1.8,
-                            };
+                        const target = {
+                            x: lerp(linePos.x, circlePos.x, morphValue),
+                            y: lerp(linePos.y, circlePos.y, morphValue),
+                            rotation: lerp(linePos.rotation, circlePos.rotation, morphValue),
+                            scale: lerp(linePos.scale, circlePos.scale, morphValue),
+                            opacity: 1,
+                        };
 
-                            target = {
-                                x: lerp(circlePos.x, arcPos.x, morphValue),
-                                y: lerp(circlePos.y, arcPos.y, morphValue),
-                                rotation: lerp(circlePos.rotation, arcPos.rotation, morphValue),
-                                scale: lerp(1, arcPos.scale, morphValue),
-                                opacity: 1,
-                            };
-                        }
-
-                        return <FlipCard key={profile.username} src={profile.src} username={profile.username} phase={introPhase} target={target} onClick={() => router.push(`/results?u=${profile.username}`)} />;
+                        return <FlipCard key={profile.username} src={profile.src} username={profile.username} target={target} onClick={() => router.push(`/results?u=${profile.username}`)} />;
                     })}
                 </div>
             </div>
