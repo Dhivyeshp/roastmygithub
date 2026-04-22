@@ -33,14 +33,15 @@ const PROFILE_SUMMARY_SYSTEM = `You are analyzing a GitHub developer's profile t
 
 Output a JSON object with exactly these fields:
 - "primary_languages": array of 1-3 languages they use most (strings)
-- "frameworks": array of frameworks/libraries detected from dependencies and repo descriptions (strings)
+- "frameworks": array of frameworks/libraries detected from README content, repo descriptions, and dependency files (strings). Examples: React, Next.js, Vue, Django, Flask, FastAPI, Express, NestJS, Spring Boot, Rails, Laravel, Phoenix, Svelte, Angular, PyTorch, TensorFlow, Prisma, Tailwind, GraphQL, tRPC, Supabase, etc.
 - "experience_level": one of "beginner", "intermediate", "advanced" based on commit volume, repo complexity, and activity consistency
-- "domain_interests": array of 1-4 domains they seem to focus on (e.g., "web frontend", "ML infra", "devtools", "data viz")
+- "domain_interests": array of 1-4 domains they seem to focus on (e.g., "web frontend", "ML infra", "devtools", "data viz", "mobile", "systems", "blockchain", "CLI tooling")
 - "recent_momentum": one of "active", "moderate", "dormant" based on commits in the last 30 days
 - "strengths_summary": a single sentence (max 25 words) describing what this developer is good at
 
 Rules:
-- Only include frameworks you can infer with high confidence from actual evidence (package.json, requirements.txt, repo descriptions).
+- Use readmeSnippets to detect frameworks — scan for import statements, dependency names, and tech-stack badges in README files.
+- Only include frameworks you can infer with high confidence from actual evidence in the provided data.
 - Do not invent skills. If evidence is thin, leave the array shorter.
 - Output valid JSON only. No preamble, no markdown fences.`;
 
@@ -106,6 +107,9 @@ export async function POST(request) {
   try {
     if (type === "profile_summary") {
       const { githubData } = payload;
+      const readmeSnippets = (githubData.readmes || [])
+        .filter((r) => r.snippet)
+        .map((r) => ({ repo: r.repo, snippet: r.snippet.slice(0, 500) }));
       const slim = {
         username: githubData.username,
         bio: githubData.profile?.bio,
@@ -115,7 +119,9 @@ export async function POST(request) {
           name: r.name,
           description: r.description,
           stars: r.stars,
+          language: r.language,
         })),
+        readmeSnippets,
         commitsLast30Days: githubData.activity?.commitsLast30Days,
         daysSinceLastCommit: githubData.activity?.daysSinceLastCommit,
       };

@@ -24,10 +24,27 @@ const AGE_OPTIONS = [
 ];
 
 const POPULAR_LANGUAGES = [
-  'JavaScript', 'TypeScript', 'Python', 'Go', 'Rust', 'Java', 'C++', 'C',
-  'C#', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Dart', 'HTML', 'CSS', 'Shell',
-  'Vue', 'React', 'Next.js', 'Svelte', 'Elixir', 'Haskell', 'Scala', 'R',
-  'MATLAB', 'Lua', 'Zig', 'OCaml', 'Clojure',
+  // Most popular
+  'JavaScript', 'TypeScript', 'Python', 'Go', 'Rust', 'Java', 'C++', 'C', 'C#',
+  'Ruby', 'PHP', 'Swift', 'Kotlin', 'Dart', 'Scala', 'Elixir', 'Haskell',
+  // Web / markup
+  'HTML', 'CSS', 'SCSS', 'Vue', 'Svelte',
+  // Scripting / shell
+  'Shell', 'Bash', 'PowerShell', 'Perl', 'Lua', 'Tcl',
+  // Systems / low-level
+  'Zig', 'Nim', 'Crystal', 'Assembly', 'CUDA', 'VHDL', 'Verilog', 'Fortran',
+  // Functional
+  'OCaml', 'Clojure', 'F#', 'Erlang', 'Racket', 'Scheme', 'Idris', 'Elm',
+  // JVM
+  'Groovy', 'Clojure',
+  // Data / scientific
+  'R', 'MATLAB', 'Julia', 'Jupyter Notebook', 'SQL',
+  // Config / infra
+  'HCL', 'Nix', 'Makefile', 'Dockerfile',
+  // Emerging / niche
+  'Solidity', 'Move', 'WebAssembly', 'Gleam', 'V',
+  // Mobile (GitHub-indexed)
+  'Objective-C',
 ];
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
