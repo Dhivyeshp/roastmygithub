@@ -195,6 +195,16 @@ export default function Home() {
             {[['Home', null], ['Features', 'features'], ['About', 'about']].map(([link, id]) => (
               <NavLink key={link} label={link} id={id} />
             ))}
+            <button
+              onClick={() => router.push('/contributions')}
+              style={{
+                fontFamily: 'var(--font-sans)', fontSize: '0.78rem', fontWeight: 500,
+                color: 'var(--green)', background: 'none', border: 'none', cursor: 'pointer',
+                padding: '0.3rem 0.65rem', borderRadius: '9999px',
+              }}
+            >
+              Contribute
+            </button>
           </div>
 
           {/* CTA */}

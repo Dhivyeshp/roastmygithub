@@ -191,6 +191,16 @@ function ResultsContent() {
               {label}
             </button>
           ))}
+          <button
+            onClick={() => router.push(`/contributions${username ? `?u=${encodeURIComponent(username)}` : ''}`)}
+            style={{
+              fontFamily: 'var(--font-sans)', fontSize: '0.78rem', fontWeight: 500,
+              color: 'var(--green)', background: 'none', border: 'none', cursor: 'pointer',
+              padding: '0.3rem 0.65rem', borderRadius: '9999px',
+            }}
+          >
+            Contribute
+          </button>
           <ThemeToggle />
         </div>
       </nav>
