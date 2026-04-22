@@ -330,7 +330,7 @@ function ContributionsContent() {
             letterSpacing: '0.08em',
             margin: 0,
           }}>
-            // contribution matcher
+            // open source maxxer
           </p>
           <h1 style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
