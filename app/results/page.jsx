@@ -9,6 +9,7 @@ import SectionLabel from '@/components/SectionLabel';
 import ReadmeTemplate from '@/components/ReadmeTemplate';
 import ThemeToggle from '@/components/ThemeToggle';
 import { getErrorMessage } from '@/lib/errors';
+import ContributionCTA from '@/components/ContributionCTA';
 
 const SCORE_CATEGORIES = ['profile', 'repos', 'readmes', 'commits', 'social'];
 
@@ -180,7 +181,7 @@ function ResultsContent() {
           >
             github<span style={{ color: 'var(--green)' }}>maxxing</span>
           </button>
-          {[['Home', '/'], ['Features', '/#features'], ['About', '/#about']].map(([label, href]) => (
+          {[['Home', '/'], ['Features', '/#features'], ['About', '/#about'], ['Contributions', `/contributions?u=${encodeURIComponent(username)}`]].map(([label, href]) => (
             <button
               key={label}
               onClick={() => router.push(href)}
@@ -510,6 +511,14 @@ function ResultsContent() {
             <ActionPlan actions={actions} />
           )}
         </div>
+
+        {/* Contribution matcher CTA */}
+        {state === 'done' && (
+          <ContributionCTA
+            username={username}
+            languages={githubData?.repos?.topLanguages || []}
+          />
+        )}
 
         {/* README template */}
         {state === 'done' && (
