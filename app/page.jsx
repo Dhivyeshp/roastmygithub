@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Feature108 from '@/components/Feature108';
 import ThemeToggle from '@/components/ThemeToggle';
+import { getErrorMessage } from '@/lib/errors';
 
 const IntroAnimation = dynamic(() => import('@/components/ui/scroll-morph-hero'), { ssr: false });
 const MORPH_SCROLL_HEIGHT = 3200;
@@ -157,7 +158,7 @@ export default function Home() {
       }
       router.push(`/results?u=${encodeURIComponent(trimmed)}`);
     } catch (err) {
-      setError(err.message);
+      setError(getErrorMessage(err, 'User not found'));
       setLoading(false);
     }
   }

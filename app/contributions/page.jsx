@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
+import { getErrorMessage } from '@/lib/errors';
 
 const DIFFICULTY_OPTIONS = [
   { value: 'beginner', label: 'Good first issue' },
@@ -82,131 +83,37 @@ function SkeletonCard() {
   );
 }
 
-// ─── ActionPlanModal ─────────────────────────────────────────────────────────
-
-function ActionPlanModal({ issue, loading, steps, error, onClose }) {
-  useEffect(() => {
-    function onKey(e) { if (e.key === 'Escape') onClose(); }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        backgroundColor: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '1rem',
-      }}
-    >
-      <div style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: '1rem',
-        padding: '1.5rem',
-        maxWidth: '560px',
-        width: '100%',
-        maxHeight: '80vh',
-        overflowY: 'auto',
-        position: 'relative',
-      }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.25rem' }}>
-          <div>
-            <p style={{
-              fontFamily: "'DM Mono', monospace", fontSize: '0.58rem',
-              color: 'var(--text-faint)', letterSpacing: '0.08em', margin: '0 0 0.3rem',
-            }}>
-              CONTRIBUTION PLAN
-            </p>
-            <p style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700,
-              fontSize: '0.95rem', color: 'var(--text)', margin: 0,
-              letterSpacing: '-0.01em', lineHeight: 1.4,
-            }}>
-              {issue.title}
-            </p>
-            <p style={{
-              fontFamily: "'DM Mono', monospace", fontSize: '0.65rem',
-              color: 'var(--green)', margin: '0.3rem 0 0',
-            }}>
-              {issue.repoName}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              fontFamily: "'DM Mono', monospace", fontSize: '0.68rem',
-              color: 'var(--text-faint)', background: 'none',
-              border: '1px solid var(--border)', borderRadius: '0.5rem',
-              padding: '0.3rem 0.65rem', cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-            {[85, 70, 90, 65, 80, 75].map((w, i) => (
-              <SkeletonLine key={i} width={`${w}%`} height="0.875rem" />
-            ))}
-          </div>
-        ) : error ? (
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.75rem', color: 'var(--red)', margin: 0 }}>
-            {error}
-          </p>
-        ) : steps?.length > 0 ? (
-          <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {steps.map((step, i) => (
-              <li key={i} style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: '0.75rem',
-                color: 'var(--text-muted)',
-                lineHeight: 1.7,
-              }}>
-                {step}
-              </li>
-            ))}
-          </ol>
-        ) : null}
-
-        {/* Footer */}
-        {!loading && steps?.length > 0 && (
-          <div style={{
-            marginTop: '1.25rem', paddingTop: '1rem',
-            borderTop: '1px solid var(--border)',
-            display: 'flex', justifyContent: 'flex-end',
-          }}>
-            <a
-              href={issue.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600,
-                fontSize: '0.78rem', backgroundColor: 'var(--green)', color: '#fff',
-                borderRadius: '9999px', padding: '0.45rem 1.125rem',
-                textDecoration: 'none', display: 'inline-block',
-              }}
-            >
-              Open issue ↗
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── IssueCard ───────────────────────────────────────────────────────────────
 
-function IssueCard({ issue, matchContext, matchLoading, hasProfile, onSkip, onGetPlan }) {
+function IssueCard({ issue, matchContext, matchLoading, hasProfile, onSkip }) {
   const repoShortName = issue.repoName.split('/')[1] || issue.repoName;
   const orgName = issue.repoName.split('/')[0] || '';
+  const tierBadge = issue.companyTier && issue.company
+    ? `Tier ${issue.companyTier} - ${issue.company}`
+    : null;
+  const labelsLower = (issue.labels || []).map((label) => label.toLowerCase());
+  const titleLower = issue.title.toLowerCase();
+  const fallbackContext = (() => {
+    if (issue.companyTier && issue.company) {
+      return `${issue.company} is a Tier ${issue.companyTier} signal, and this ${repoShortName} issue fits your detected stack.`;
+    }
+    if (labelsLower.some((label) => label.includes('good first') || label.includes('beginner') || label.includes('first-timer'))) {
+      return `${repoShortName} marked this as beginner-friendly, so it is a lower-risk way to contribute in your stack.`;
+    }
+    if (labelsLower.some((label) => label.includes('help wanted'))) {
+      return `${repoShortName} is explicitly asking for outside help, which makes this a realistic contribution target.`;
+    }
+    if (titleLower.includes('doc') || labelsLower.some((label) => label.includes('doc'))) {
+      return `This looks documentation-focused, a practical way to learn ${repoShortName} before touching deeper code.`;
+    }
+    if (titleLower.includes('test') || labelsLower.some((label) => label.includes('test'))) {
+      return `Testing issues are good scoped contributions and show maintainers you can improve project reliability.`;
+    }
+    if (titleLower.includes('bug') || labelsLower.some((label) => label.includes('bug'))) {
+      return `A bug fix in ${repoShortName} gives you a clear before-and-after contribution to point to.`;
+    }
+    return `${repoShortName} matches your selected stack and has an open issue with a recent contribution window.`;
+  })();
 
   const showContextSkeleton = !matchContext && matchLoading && hasProfile;
   const showContextPrompt = !matchContext && !hasProfile;
@@ -234,10 +141,29 @@ function IssueCard({ issue, matchContext, matchLoading, hasProfile, onSkip, onGe
 
       {/* Repo + age row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-          <span style={{ color: 'var(--text-faint)' }}>{orgName}/</span>
-          <span style={{ color: 'var(--green)', fontWeight: 600 }}>{repoShortName}</span>
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+            <span style={{ color: 'var(--text-faint)' }}>{orgName}/</span>
+            <span style={{ color: 'var(--green)', fontWeight: 600 }}>{repoShortName}</span>
+          </span>
+          {tierBadge && (
+            <span
+              title={issue.companySignal || issue.companyTierLabel || tierBadge}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: '0.56rem',
+                color: 'var(--green)',
+                backgroundColor: 'rgba(34,197,94,0.08)',
+                border: '1px solid rgba(34,197,94,0.22)',
+                borderRadius: '0.375rem',
+                padding: '0.16rem 0.42rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tierBadge}
+            </span>
+          )}
+        </div>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.6rem', color: 'var(--text-faint)' }}>
           {issue.age}
         </span>
@@ -285,7 +211,7 @@ function IssueCard({ issue, matchContext, matchLoading, hasProfile, onSkip, onGe
             color: 'var(--text-muted)', margin: 0, lineHeight: 1.6,
           }}>
             <span style={{ color: 'var(--green)', fontWeight: 600 }}>Why this matches: </span>
-            This issue aligns with your detected language stack.
+            {fallbackContext}
           </p>
         )}
       </div>
@@ -308,17 +234,6 @@ function IssueCard({ issue, matchContext, matchLoading, hasProfile, onSkip, onGe
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-        <button
-          onClick={onGetPlan}
-          style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600,
-            fontSize: '0.75rem', backgroundColor: 'var(--green)', color: '#fff',
-            border: 'none', borderRadius: '9999px', padding: '0.4rem 1rem',
-            cursor: 'pointer',
-          }}
-        >
-          Get plan →
-        </button>
         <a
           href={issue.url}
           target="_blank"
@@ -543,10 +458,14 @@ function StackEditor({ languages, setLanguages, detectedFrom, profileSummary }) 
 
 // ─── UsernameInput ────────────────────────────────────────────────────────────
 
-function UsernameInput({ onDetected }) {
-  const [input, setInput] = useState('');
+function UsernameInput({ onDetected, initialUsername = '' }) {
+  const [input, setInput] = useState(initialUsername);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setInput(initialUsername);
+  }, [initialUsername]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -561,7 +480,7 @@ function UsernameInput({ onDetected }) {
       const langs = data.githubData?.repos?.topLanguages || [];
       onDetected(trimmed, langs, data.githubData);
     } catch (err) {
-      setError(err.message);
+      setError(getErrorMessage(err, 'User not found'));
     } finally {
       setLoading(false);
     }
@@ -626,6 +545,7 @@ function ContributionsContent() {
   const [total, setTotal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [skipped, setSkipped] = useState(() => {
     if (typeof window === 'undefined') return {};
     try { return JSON.parse(localStorage.getItem('gh-skipped-issues') || '{}'); } catch { return {}; }
@@ -642,31 +562,46 @@ function ContributionsContent() {
   const [profileSummary, setProfileSummary] = useState(null);
   const [matchContexts, setMatchContexts] = useState({});
   const [matchLoading, setMatchLoading] = useState(false);
-  const [planState, setPlanState] = useState(null); // { issue, loading, steps, error }
   const lastMatchBatchRef = useRef('');
+  const autoDetectedRef = useRef('');
+  const fetchRequestRef = useRef(0);
 
   const hasStack = languages.length > 0;
 
   // Fetch issues
   const fetchIssues = useCallback(async () => {
     if (!hasStack) return;
+    const requestId = fetchRequestRef.current + 1;
+    fetchRequestRef.current = requestId;
     setLoading(true);
     setError('');
+    setWarning('');
     try {
       const p = new URLSearchParams({ difficulty, minStars, maxAgeDays, languages: languages.join(',') });
       const res = await fetch(`/api/contributions?${p}`);
       const data = await res.json();
+      if (requestId !== fetchRequestRef.current) return;
       if (!res.ok) throw new Error(data.error || 'Failed to fetch');
       setIssues(data.issues || []);
       setTotal(data.total ?? null);
+      if (data.warning) setWarning(data.warning);
     } catch (err) {
-      setError(err.message);
+      if (requestId !== fetchRequestRef.current) return;
+      const message = getErrorMessage(err, 'Failed to fetch contributions');
+      if (issues.length > 0) {
+        setWarning(message);
+      } else {
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (requestId === fetchRequestRef.current) setLoading(false);
     }
-  }, [difficulty, minStars, maxAgeDays, languages, hasStack]);
+  }, [difficulty, minStars, maxAgeDays, languages, hasStack, issues.length]);
 
-  useEffect(() => { fetchIssues(); }, [fetchIssues]);
+  useEffect(() => {
+    const timer = setTimeout(fetchIssues, 250);
+    return () => clearTimeout(timer);
+  }, [fetchIssues]);
 
   // Run profile summary when user is detected (optionally enriched with Reddit data)
   async function fetchProfileSummary(githubData, redditData) {
@@ -680,14 +615,31 @@ function ContributionsContent() {
         }),
       });
       const data = await res.json();
-      if (data.result) setProfileSummary(data.result);
+      if (data.result) {
+        setProfileSummary(data.result);
+        // Merge primary languages + detected frameworks into one unified chip set
+        const detected = [
+          ...(data.result.primary_languages || []),
+          ...(data.result.frameworks || []),
+        ];
+        if (detected.length > 0) {
+          setLanguages((prev) => {
+            const merged = [...prev];
+            for (const tech of detected) {
+              if (!merged.includes(tech)) merged.push(tech);
+            }
+            return merged;
+          });
+        }
+      }
     } catch {}
   }
 
   // Run match batch whenever issues change and profile is ready
   useEffect(() => {
     if (!profileSummary || issues.length === 0) return;
-    const batchKey = issues.map((i) => i.id).join(',');
+    const aiIssues = issues.slice(0, 12);
+    const batchKey = aiIssues.map((i) => i.id).join(',');
     if (lastMatchBatchRef.current === batchKey) return;
     lastMatchBatchRef.current = batchKey;
 
@@ -699,7 +651,15 @@ function ContributionsContent() {
         type: 'match_batch',
         payload: {
           profileSummary,
-          issues: issues.map((i) => ({ id: String(i.id), title: i.title, repoName: i.repoName, labels: i.labels })),
+          issues: aiIssues.map((i) => ({
+            id: String(i.id),
+            title: i.title,
+            repoName: i.repoName,
+            labels: i.labels,
+            company: i.company,
+            companyTier: i.companyTier,
+            companySignal: i.companySignal,
+          })),
         },
       }),
     })
@@ -731,6 +691,26 @@ function ContributionsContent() {
     fetchProfileSummary(githubData, redditData);
   }, []);
 
+  useEffect(() => {
+    if (!urlUsername || initialLanguages.length > 0 || autoDetectedRef.current === urlUsername) return;
+    autoDetectedRef.current = urlUsername;
+
+    async function autoDetectFromUrl() {
+      try {
+        setDetectedFrom(urlUsername);
+        const res = await fetch(`/api/analyze?username=${encodeURIComponent(urlUsername)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to detect stack');
+        const langs = data.githubData?.repos?.topLanguages || [];
+        handleDetected(urlUsername, langs, data.githubData);
+      } catch (err) {
+        setError(getErrorMessage(err, 'Failed to detect stack'));
+      }
+    }
+
+    autoDetectFromUrl();
+  }, [urlUsername, initialLanguages.length, handleDetected]);
+
   const handleSkip = useCallback((id) => {
     setSkipped((prev) => {
       const next = { ...prev, [id]: true };
@@ -739,31 +719,6 @@ function ContributionsContent() {
     });
   }, []);
 
-  async function handleGetPlan(issue) {
-    setPlanState({ issue, loading: true, steps: null, error: null });
-    try {
-      const res = await fetch('/api/contributions/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'action_plan',
-          payload: {
-            profileSummary: profileSummary || { primary_languages: languages, experience_level: 'intermediate' },
-            issue: { title: issue.title, repoName: issue.repoName, url: issue.url, labels: issue.labels },
-          },
-        }),
-      });
-      const data = await res.json();
-      if (data.steps) {
-        setPlanState((prev) => ({ ...prev, loading: false, steps: data.steps }));
-      } else {
-        setPlanState((prev) => ({ ...prev, loading: false, error: data.error || 'Failed to generate plan' }));
-      }
-    } catch (err) {
-      setPlanState((prev) => ({ ...prev, loading: false, error: err.message }));
-    }
-  }
-
   const visibleIssues = issues.filter((i) => !skipped[i.id]);
 
   return (
@@ -771,17 +726,6 @@ function ContributionsContent() {
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       `}</style>
-
-      {/* Action plan modal */}
-      {planState && (
-        <ActionPlanModal
-          issue={planState.issue}
-          loading={planState.loading}
-          steps={planState.steps}
-          error={planState.error}
-          onClose={() => setPlanState(null)}
-        />
-      )}
 
       {/* Nav */}
       <nav style={{
@@ -817,6 +761,17 @@ function ContributionsContent() {
               {label}
             </button>
           ))}
+          <button
+            onClick={() => router.push(`/contributions${urlUsername ? `?u=${encodeURIComponent(urlUsername)}` : ''}`)}
+            style={{
+              fontFamily: 'var(--font-sans)', fontSize: '0.78rem', fontWeight: 600,
+              color: 'var(--green)', backgroundColor: 'rgba(34,197,94,0.08)',
+              border: '1px solid rgba(34,197,94,0.18)',
+              cursor: 'pointer', padding: '0.3rem 0.65rem', borderRadius: '9999px',
+            }}
+          >
+            Contribute
+          </button>
           {urlUsername && (
             <button
               onClick={() => router.push(`/results?u=${encodeURIComponent(urlUsername)}`)}
@@ -859,7 +814,7 @@ function ContributionsContent() {
         </div>
 
         {/* Username input */}
-        <UsernameInput onDetected={handleDetected} />
+        <UsernameInput onDetected={handleDetected} initialUsername={urlUsername} />
 
         {/* Stack editor */}
         <StackEditor
@@ -913,24 +868,31 @@ function ContributionsContent() {
 
         {/* Results header */}
         {hasStack && !loading && !error && total !== null && (
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-            Showing {visibleIssues.length} of {total.toLocaleString()} matches
-            {Object.keys(skipped).length > 0 && (
-              <button
-                onClick={() => {
-                  setSkipped({});
-                  try { localStorage.removeItem('gh-skipped-issues'); } catch {}
-                }}
-                style={{
-                  marginLeft: '0.75rem', fontFamily: "'DM Mono', monospace",
-                  fontSize: '0.62rem', color: 'var(--text-faint)',
-                  background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
-                }}
-              >
-                restore skipped
-              </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
+              Showing {visibleIssues.length} of {total.toLocaleString()} matches
+              {Object.keys(skipped).length > 0 && (
+                <button
+                  onClick={() => {
+                    setSkipped({});
+                    try { localStorage.removeItem('gh-skipped-issues'); } catch {}
+                  }}
+                  style={{
+                    marginLeft: '0.75rem', fontFamily: "'DM Mono', monospace",
+                    fontSize: '0.62rem', color: 'var(--text-faint)',
+                    background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
+                  }}
+                >
+                  restore skipped
+                </button>
+              )}
+            </p>
+            {warning && (
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'var(--amber)', margin: 0 }}>
+                Showing cached results. {warning}
+              </p>
             )}
-          </p>
+          </div>
         )}
 
         {/* Issue list */}
@@ -972,7 +934,6 @@ function ContributionsContent() {
                   matchLoading={matchLoading}
                   hasProfile={!!profileSummary}
                   onSkip={handleSkip}
-                  onGetPlan={() => handleGetPlan(issue)}
                 />
               ))}
             </div>
